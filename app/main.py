@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -113,7 +114,12 @@ class EmergencyCheckRequest(BaseModel):
 # TOOL ENDPOINTS  (one per Vapi "function")
 # ---------------------------------------------------------------------------
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
+def home():
+    return RedirectResponse("/demo/")
+
+
+@app.get("/health")
 def health():
     return {"status": "ok", "service": "HVAC Voice Agent Demo Backend"}
 
