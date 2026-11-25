@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AZync AI Voice Receptionist — Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blue: #0066ff;
+    --blue-light: #e8f1ff;
+    --blue-glow: rgba(0, 102, 255, 0.35);
+    --navy: #0b132b;
+    --navy-soft: #334155;
+    --purple: #6200ea;
+    --purple-soft: rgba(98, 0, 234, 0.08);
+    --pink-start: #f43f5e;
+    --pink-end: #ec4899;
+    --bg: #f8fafc;
+    --white: #ffffff;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-400: #94a3b8;
+    --green: #10b981;
+    --shadow-sm: 0 4px 24px rgba(11, 19, 43, 0.06);
+    --shadow-md: 0 12px 40px rgba(11, 19, 43, 0.1);
+    --shadow-lg: 0 24px 64px rgba(0, 102, 255, 0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Animated background ── */
+  .bg-mesh {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .bg-mesh__orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.45;
+    animation: orbDrift 18s ease-in-out infinite alternate;
+  }
+  .bg-mesh__orb--1 {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, var(--blue) 0%, transparent 70%);
+    top: -120px; right: -80px;
+    animation-delay: 0s;
+  }
+  .bg-mesh__orb--2 {
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
+    bottom: -100px; left: -60px;
+    animation-delay: -6s;
+  }
+  .bg-mesh__orb--3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, var(--pink-end) 0%, transparent 70%);
+    top: 40%; left: 45%;
+    opacity: 0.2;
+    animation-delay: -12s;
+  }
+  @keyframes orbDrift {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -30px) scale(1.08); }
+  }
+
+  .grid-lines {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 102, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 102, 255, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 20%, transparent 80%);
+  }
+
+  /* ── Layout ── */
+  .page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    animation: fadeDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .header__logo img {
+    height: 44px;
+    width: auto;
+    display: block;
+  }
+  .header__nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .header__link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--navy-soft);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .header__link:hover { color: var(--blue); }
+  .header__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--pink-start), var(--pink-end));
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(244, 63, 94, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .header__cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(244, 63, 94, 0.45);
+  }
+
+  /* ── Hero ── */
+  .hero {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+    padding: 32px 48px 64px;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .hero__left { max-width: 560px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: fadeUp 0.7s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .badge__dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    50%       { opacity: 0.85; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  }
+
+  .hero__title {
+    font-size: clamp(2.4rem, 4.5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    animation: fadeUp 0.7s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero__title .highlight {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero__subtitle {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--navy-soft);
+    margin-bottom: 32px;
+    animation: fadeUp 0.7s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero__features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 36px;
+    animation: fadeUp 0.7s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero__features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: var(--navy);
+    font-weight: 500;
+  }
+  .hero__features li svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    animation: fadeUp 0.7s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--blue), #0052cc);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 24px var(--blue-glow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px var(--blue-glow);
+  }
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: var(--white);
+    color: var(--blue);
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 2px solid var(--gray-200);
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    text-decoration: none;
+  }
+  .btn-ghost:hover {
+    border-color: var(--blue);
+    transform: translateY(-2px);
+  }
+
+  .demo-hint {
+    margin-top: 28px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    font-size: 0.85rem;
+    color: var(--navy-soft);
+    line-height: 1.6;
+    box-shadow: var(--shadow-sm);
+    animation: fadeUp 0.7s 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .demo-hint strong { color: var(--navy); }
+  .demo-hint em { color: var(--blue); font-style: normal; font-weight: 600; }
+
+  /* ── Right panel ── */
+  .hero__right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 520px;
+    animation: fadeIn 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .visual-stage {
+    position: relative;
+    width: 100%;
+    max-width: 540px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 18px 12px;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .phone-mock {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    position: relative;
+    z-index: 3;
+    width: 300px;
+    background: var(--white);
+    border-radius: 32px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--gray-200);
+    animation: phoneFloat 6s ease-in-out infinite;
+  }
+  @keyframes phoneFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+  }
+
+  .phone-mock__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .phone-mock__avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .phone-mock__name { font-weight: 700; font-size: 1rem; }
+  .phone-mock__status {
+    font-size: 0.75rem;
+    color: var(--green);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .phone-mock__status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  .waveform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 64px;
+    margin: 16px 0;
+  }
+  .waveform__bar {
+    width: 4px;
+    border-radius: 4px;
+    background: linear-gradient(to top, var(--blue), var(--purple));
+    animation: wave 1.2s ease-in-out infinite;
+  }
+  .waveform__bar:nth-child(1)  { height: 16px; animation-delay: 0s; }
+  .waveform__bar:nth-child(2)  { height: 28px; animation-delay: 0.1s; }
+  .waveform__bar:nth-child(3)  { height: 40px; animation-delay: 0.2s; }
+  .waveform__bar:nth-child(4)  { height: 52px; animation-delay: 0.3s; }
+  .waveform__bar:nth-child(5)  { height: 36px; animation-delay: 0.4s; }
+  .waveform__bar:nth-child(6)  { height: 48px; animation-delay: 0.5s; }
+  .waveform__bar:nth-child(7)  { height: 32px; animation-delay: 0.6s; }
+  .waveform__bar:nth-child(8)  { height: 44px; animation-delay: 0.7s; }
+  .waveform__bar:nth-child(9)  { height: 24px; animation-delay: 0.8s; }
+  .waveform__bar:nth-child(10) { height: 36px; animation-delay: 0.9s; }
+  .waveform__bar:nth-child(11) { height: 20px; animation-delay: 1.0s; }
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.5); opacity: 0.6; }
+    50%       { transform: scaleY(1); opacity: 1; }
+  }
+
+  .chat-bubble {
+    background: var(--gray-100);
+    border-radius: 16px 16px 16px 4px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--navy);
+    margin-bottom: 10px;
+    animation: bubbleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .chat-bubble--ai {
+    background: linear-gradient(135deg, var(--blue-light), var(--purple-soft));
+    border-radius: 16px 16px 4px 16px;
+    animation-delay: 0.8s;
+  }
+  .chat-bubble--user { animation-delay: 0.4s; }
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .call-btn-mock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--pink-start), var(--pink-end));
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(244, 63, 94, 0.3);
+    animation: callPulse 3s ease-in-out infinite;
+  }
+  @keyframes callPulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(244, 63, 94, 0.3); }
+    50%       { box-shadow: 0 4px 28px rgba(244, 63, 94, 0.55); }
+  }
+
+  /* Feature cards — sit beside the phone, never on top */
+  .float-card {
+    position: relative;
+    z-index: 2;
+    background: var(--white);
+    border-radius: 16px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 190px;
+  }
+  .float-card__icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .float-card__icon--blue   { background: var(--blue-light); color: var(--blue); }
+  .float-card__icon--purple { background: var(--purple-soft); color: var(--purple); }
+  .float-card__icon--green  { background: rgba(16, 185, 129, 0.12); color: var(--green); }
+  .float-card__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-bottom: 2px;
+  }
+  .float-card__text {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .float-card--1 {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: start;
+    animation: cardFloat1 5.5s ease-in-out infinite, fadeUp 0.8s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .float-card--2 {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    animation: cardFloat2 6s ease-in-out infinite, fadeUp 0.8s 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .float-card--3 {
+    grid-column: 3;
+    grid-row: 3;
+    justify-self: start;
+    animation: cardFloat3 5s ease-in-out infinite, fadeUp 0.8s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes cardFloat1 {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+  @keyframes cardFloat2 {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+  @keyframes cardFloat3 {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
+
+  /* Decorative ring — behind phone only */
+  .hero__ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 340px; height: 340px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px dashed rgba(0, 102, 255, 0.12);
+    animation: ringSpin 30s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes ringSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* ── Stats strip ── */
+  .stats {
+    display: flex;
+    gap: 40px;
+    padding: 28px 48px;
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    animation: fadeUp 0.8s 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat__value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat__label {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    padding: 24px 48px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--gray-200);
+    margin-top: auto;
+    animation: fadeUp 0.8s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .footer__brand {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .footer__tagline {
+    font-size: 0.85rem;
+    color: var(--navy-soft);
+  }
+
+  /* ── Scroll hint ── */
+  .scroll-hint {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    animation: fadeUp 1s 1.2s cubic-bezier(0.16, 1, 0.3, 1) both, bounce 2s 2s ease-in-out infinite;
+    z-index: 2;
+    opacity: 0;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ── Shared keyframes ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── Active Call Overlay ── */
+  .call-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(11, 19, 43, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .call-overlay.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .call-overlay__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .call-overlay.is-active .call-overlay__content {
+    transform: translateY(0) scale(1);
+  }
+  .call-overlay__avatar {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+    z-index: 1;
+  }
+  .call-overlay__pulse {
+    position: absolute;
+    inset: -30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.5), rgba(98, 0, 234, 0.5));
+    z-index: -1;
+    animation: bigPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes bigPulse {
+    0% { transform: scale(0.7); opacity: 1; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+  .call-overlay__title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .call-overlay__status {
+    font-size: 1.25rem;
+    color: var(--gray-400);
+    margin-bottom: 24px;
+  }
+  .call-overlay__timer {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 48px;
+    font-variant-numeric: tabular-nums;
+  }
+  .call-overlay__end-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 36px;
+    border-radius: 999px;
+    background: var(--pink-start);
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(244, 63, 94, 0.4);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .call-overlay__end-btn:hover {
+    background: var(--pink-end);
+    transform: translateY(-2px);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .header { padding: 16px 24px; }
+    .header__nav .header__link { display: none; }
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 24px;
+      gap: 32px;
+    }
+    .hero__right { min-height: auto; }
+    .visual-stage {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      gap: 14px;
+      max-width: 320px;
+    }
+    .phone-mock { grid-column: 1; grid-row: auto; width: 100%; }
+    .float-card { width: 100%; }
+    .float-card--1, .float-card--2, .float-card--3 {
+      grid-column: 1;
+      grid-row: auto;
+      justify-self: stretch;
+    }
+    .hero__ring { display: none; }
+    .stats { flex-wrap: wrap; gap: 24px; padding: 24px; }
+    .footer { flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
+    .scroll-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh">
+  <div class="bg-mesh__orb bg-mesh__orb--1"></div>
+  <div class="bg-mesh__orb bg-mesh__orb--2"></div>
+  <div class="bg-mesh__orb bg-mesh__orb--3"></div>
+</div>
+<div class="grid-lines"></div>
+
+<div class="page">
+
+  <!-- Header -->
+  <header class="header">
+    <a class="header__logo" href="#">
+      <img src="assets/logo.png" alt="AZync Solutions" />
+    </a>
+    <nav class="header__nav">
+      <a class="header__link" href="#">Home</a>
+      <a class="header__link" href="#">Services</a>
+      <a class="header__link" href="#">About</a>
+      <a class="header__cta" href="#" id="header-start-call">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Try Live Demo
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="demo">
+    <div class="hero__left">
+      <div class="badge">
+        <span class="badge__dot"></span>
+        Live Demo &middot; AI Voice Receptionist
+      </div>
+
+      <h1 class="hero__title">
+        AI that answers your<br />
+        <span class="highlight">HVAC calls 24/7</span>
+      </h1>
+
+      <p class="hero__subtitle">
+        An AI voice receptionist built for HVAC companies. It answers every call instantly,
+        books appointments, texts confirmations, and knows the difference between
+        <em style="font-style:italic;color:var(--navy);">"my AC's a bit loud"</em> and a real emergency.
+      </p>
+
+      <ul class="hero__features">
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#e8f1ff"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#0066ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Answers every call instantly — zero hold time
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#e8f1ff"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#0066ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Books appointments &amp; sends SMS confirmations
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#e8f1ff"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="#0066ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Detects emergencies and transfers to a human immediately
+        </li>
+      </ul>
+
+      <div class="hero__actions">
+        <button type="button" class="btn-primary" id="start-live-call">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          Start Live Call
+        </button>
+        <a class="btn-ghost" href="#">
+          Watch 2-min Demo
+        </a>
+      </div>
+
+      <div class="demo-hint">
+        <strong>Try it now:</strong> Click the call button (bottom right) and say<br />
+        <em>"My AC stopped cooling and I'm in F-10 Islamabad."</em><br /><br />
+        Or test emergency detection: <em>"I smell gas in my kitchen"</em> — it transfers instantly.
+      </div>
+    </div>
+
+    <div class="hero__right">
+      <div class="visual-stage">
+      <div class="hero__ring"></div>
+
+      <!-- Feature cards (beside phone, no overlap) -->
+      <div class="float-card float-card--1">
+        <div class="float-card__icon float-card__icon--blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div>
+          <div class="float-card__label">Speed</div>
+          <div class="float-card__text">Instant Answer</div>
+        </div>
+      </div>
+
+      <div class="float-card float-card--2">
+        <div class="float-card__icon float-card__icon--purple">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div>
+          <div class="float-card__label">Scheduling</div>
+          <div class="float-card__text">Books Appointments</div>
+        </div>
+      </div>
+
+      <div class="float-card float-card--3">
+        <div class="float-card__icon float-card__icon--green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="float-card__label">Safety</div>
+          <div class="float-card__text">Emergency Detection</div>
+        </div>
+      </div>
+
+      <!-- Phone mockup -->
+      <div class="phone-mock">
+        <div class="phone-mock__header">
+          <div class="phone-mock__avatar">R</div>
+          <div>
+            <div class="phone-mock__name">Riley · AI Receptionist</div>
+            <div class="phone-mock__status">
+              <span class="phone-mock__status-dot"></span>
+              On call · Listening
+            </div>
+          </div>
+        </div>
+
+        <div class="waveform">
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+          <div class="waveform__bar"></div>
+        </div>
+
+        <div class="chat-bubble chat-bubble--user">
+          "My AC stopped cooling and I'm in F-10 Islamabad."
+        </div>
+        <div class="chat-bubble chat-bubble--ai">
+          "I can help with that! We cover F-10. I have tomorrow at 10 AM or 2 PM — which works better?"
+        </div>
+
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat__value">0s</div>
+      <div class="stat__label">Hold Time</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value">24/7</div>
+      <div class="stat__label">Always On</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value">100%</div>
+      <div class="stat__label">Calls Answered</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value">&lt;2s</div>
+      <div class="stat__label">Response Time</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="footer__brand">AZync Solutions</span>
+    <span class="footer__tagline">Built by AZync Company — AI that actually works.</span>
+  </footer>
+
+</div>
+
+<div class="scroll-hint">
+  <span>Scroll</span>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+</div>
+
+<!-- Active Call Overlay -->
+<div class="call-overlay" id="call-overlay">
+  <div class="call-overlay__content">
+    <div class="call-overlay__avatar">
+      <div class="call-overlay__pulse"></div>
+      R
+    </div>
+    <div class="call-overlay__title" id="call-title">Connecting...</div>
+    <div class="call-overlay__status">Live AI Receptionist Call</div>
+    <div class="call-overlay__timer" id="call-timer">00:00</div>
+    <button class="call-overlay__end-btn" id="end-live-call">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.84.57 2.81.7a2 2 0 011.72 2v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.42 19.42 0 01-3.33-2.67m-2.67-3.34a19.79 19.79 0 01-3.07-8.63A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+      End Call
+    </button>
+  </div>
+</div>
+
+<script>
+  const VAPI_API_KEY = "45ded723-9c8d-4dc3-a36e-0b9bcaf29a9c";
+  const VAPI_ASSISTANT = "91645d7e-fe40-4bf9-b6ec-f93a12e6410b";
+  let vapiInstance = null;
+
+  function initVapi() {
+    if (!window.vapiSDK || vapiInstance) return vapiInstance;
+    vapiInstance = window.vapiSDK.run({
+      apiKey: VAPI_API_KEY,
+      assistant: VAPI_ASSISTANT,
+      config: {
+        position: "bottom-right",
+        offset: "32px",
+        width: "56px",
+        height: "56px",
+        idle: {
+          color: "rgb(244, 63, 94)",
+          type: "round",
+          icon: "https://unpkg.com/lucide-static@0.321.0/icons/phone.svg",
+        },
+        loading: {
+          color: "rgb(0, 102, 255)",
+          type: "round",
+          icon: "https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg",
+        },
+        active: {
+          color: "rgb(220, 38, 38)",
+          type: "round",
+          icon: "https://unpkg.com/lucide-static@0.321.0/icons/phone-off.svg",
+        },
+      },
+    });
+    attachVapiEvents(vapiInstance);
+    return vapiInstance;
+  }
+
+  let callTimerInterval = null;
+  let callSeconds = 0;
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startTimer() {
+    callSeconds = 0;
+    document.getElementById("call-timer").textContent = "00:00";
+    clearInterval(callTimerInterval);
+    callTimerInterval = setInterval(() => {
+      callSeconds++;
+      document.getElementById("call-timer").textContent = formatTime(callSeconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(callTimerInterval);
+  }
+
+  function attachVapiEvents(vapi) {
+    vapi.on('call-start', () => {
+      document.getElementById("call-overlay").classList.add("is-active");
+      document.getElementById("call-title").textContent = "Riley is listening...";
+      startTimer();
+    });
+    
+    vapi.on('call-end', () => {
+      document.getElementById("call-overlay").classList.remove("is-active");
+      document.getElementById("call-title").textContent = "Connecting...";
+      stopTimer();
+    });
+
+    vapi.on('speech-start', () => {
+      document.getElementById("call-title").textContent = "Riley is speaking...";
+    });
+
+    vapi.on('speech-end', () => {
+      document.getElementById("call-title").textContent = "Riley is listening...";
+    });
+  }
+
+  document.getElementById("end-live-call").addEventListener("click", () => {
+    if (vapiInstance && typeof vapiInstance.stop === "function") {
+      vapiInstance.stop();
+    }
+    document.getElementById("call-overlay").classList.remove("is-active");
+    stopTimer();
+  });
+
+  function startLiveCall(event) {
+    if (event) event.preventDefault();
+
+    // Show overlay immediately
+    document.getElementById("call-overlay").classList.add("is-active");
+    document.getElementById("call-title").textContent = "Connecting...";
+
+    const vapi = vapiInstance || initVapi();
+    if (vapi && typeof vapi.start === "function") {
+      vapi.start(VAPI_ASSISTANT);
+      return;
+    }
+
+    const widgetBtn = document.querySelector(".vapi-btn");
+    if (widgetBtn) {
+      widgetBtn.click();
+      return;
+    }
+
+    /* SDK still loading — retry once script is ready */
+    const retry = setInterval(() => {
+      const ready = vapiInstance || initVapi();
+      if (ready && typeof ready.start === "function") {
+        clearInterval(retry);
+        ready.start(VAPI_ASSISTANT);
+      } else if (document.querySelector(".vapi-btn")) {
+        clearInterval(retry);
+        document.querySelector(".vapi-btn").click();
+      }
+    }, 200);
+    setTimeout(() => {
+      clearInterval(retry);
+      // If it failed to load in 5 seconds, hide the overlay
+      if (!vapiInstance || typeof vapiInstance.start !== "function") {
+        document.getElementById("call-overlay").classList.remove("is-active");
+      }
+    }, 5000);
+  }
+
+  (function loadVapi(d, t) {
+    var g = d.createElement(t);
+    var s = d.getElementsByTagName(t)[0];
+    g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+    g.defer = true;
+    g.async = true;
+    g.onload = function () { initVapi(); };
+    s.parentNode.insertBefore(g, s);
+  })(document, "script");
+
+  document.getElementById("start-live-call")?.addEventListener("click", startLiveCall);
+  document.getElementById("header-start-call")?.addEventListener("click", startLiveCall);
+</script>
+<script>
+  /* Cycle chat bubbles for demo recording visual interest */
+  const conversations = [
+    {
+      user: '"My AC stopped cooling and I\'m in F-10 Islamabad."',
+      ai: '"I can help with that! We cover F-10. I have tomorrow at 10 AM or 2 PM — which works better?"'
+    },
+    {
+      user: '"I smell gas in my kitchen!"',
+      ai: '"That sounds like an emergency. I\'m transferring you to our on-call technician right now. Stay on the line."'
+    },
+    {
+      user: '"Can someone come look at my noisy furnace?"',
+      ai: '"Absolutely. What\'s your address? I\'ll find the next available slot for a diagnostic visit."'
+    }
+  ];
+  let convIdx = 0;
+  setInterval(() => {
+    convIdx = (convIdx + 1) % conversations.length;
+    const userEl = document.querySelector(".chat-bubble--user");
+    const aiEl = document.querySelector(".chat-bubble--ai");
+    if (!userEl || !aiEl) return;
+    userEl.style.animation = "none";
+    aiEl.style.animation = "none";
+    void userEl.offsetWidth;
+    userEl.textContent = conversations[convIdx].user;
+    aiEl.textContent = conversations[convIdx].ai;
+    userEl.style.animation = "bubbleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both";
+    aiEl.style.animation = "bubbleIn 0.5s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both";
+  }, 6000);
+
+  /* Animate stat counters on load */
+  document.querySelectorAll(".stat__value").forEach(el => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(8px)";
+    setTimeout(() => {
+      el.style.transition = "opacity 0.6s, transform 0.6s";
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
+    }, 1200);
+  });
+</script>
+</body>
+</html>
